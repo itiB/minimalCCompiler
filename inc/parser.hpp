@@ -21,8 +21,11 @@ class Parser {
         TranslationUnitAST *TU;
 
         //意味解析用各種識別子表
-		std::vector<std::string> VariableTable;
+        // 解析中の関数の変数名を登録しておくベクタ
+        std::vector<std::string> VariableTable;
+        //
         std::map<std::string, int> PrototypeTable;
+        //
         std::map<std::string, int> FunctionTable;
 
     public:
