@@ -13,6 +13,12 @@ CodeGen::CodeGen() {
     Mod = NULL;
 }
 
+/// デストラクタ
+CodeGen::~CodeGen() {
+    SAFE_DELETE(Builder);
+    SAFE_DELETE(Mod);
+}
+
 /// コード生成実行
 /// @param TranslationUnitAST Module名(入力ファイル名)
 /// @return 成功時: True, 失敗時: false
@@ -308,6 +314,8 @@ llvm::Value *CodeGen::generateBinaryExpression(BinaryExprAST *bin_expr) {
         // div
         return Builder->CreateSDiv(rhs_v, lhs_v, "div_tmp");
     }
+    // unreachable
+    return NULL;
 }
 
 /// 関数呼び出し(call命令)生成メソッド
@@ -402,19 +410,19 @@ llvm::Value *CodeGen::generateNumber(int value) {
 }
 
 
-bool CodeGen::linkModule(llvm::Module *dest, std::string file_name){
-    llvm::SMDiagnostic err;
-    llvm::Module *link_mod = llvm::parseIRFile(file_name, err, context);
-    if(!link_mod)
-        return false;
+// bool CodeGen::linkModule(llvm::Module *dest, std::string file_name){
+//     llvm::SMDiagnostic err;
+//     llvm::Module *link_mod = llvm::parseIRFile(file_name, err, context);
+//     if(!link_mod)
+//         return false;
 
-    std::string err_msg;
-    // if(llvm::Linker::LinkModules(dest, link_mod, llvm::None, &err_msg))
-    if(llvm::Linker::linkModules(dest, link_mod, llvm::None))
-        return false;
+//     std::string err_msg;
+//     // if(llvm::Linker::LinkModules(dest, link_mod, llvm::None, &err_msg))
+//     if(llvm::Linker::linkModules(dest, link_mod, llvm::None))
+//         return false;
 
-    // SAFE_DELETE(link_mod);
-    SAFE_DELETEU(link_mod);
+//     // SAFE_DELETE(link_mod);
+//     SAFE_DELETEU(link_mod);
 
-    return true;
-}
+//     return true;
+// }

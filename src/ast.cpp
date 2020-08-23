@@ -1,54 +1,74 @@
 #include "ast.hpp"
 
-/// デストラクタ
-TokenStream::~TokenStream() {
-    for (int i = 0; i < Tokens.size(); i++) {
-        SAFE_DELETE(Tokens[i]);
+TranslationUnitAST::~TranslationUnitAST() {
+    // プロトタイプの数分
+    for (int i = 0; i < Prototypes.size(); i++) {
+        SAFE_DELETE(Prototypes[i]);
     }
-    Tokens.clear();
+    Prototypes.clear();
+
+    for (int i = 0; i < Functions.size(); i++) {
+        SAFE_DELETE(Functions[i]);
+    }
+    Functions.clear();
 }
 
-/// トークンの取得
-/// @return CureIndex番目のToken
-Token TokenStream::getToken() {
-    return *Tokens[CurIndex];
+/// PrototypeAST(関数宣言追加メソッド)
+/// @param  VariableDeclAST
+/// @retirm true
+bool TranslationUnitAST::addPrototype(PrototypeAST *proto) {
+    Prototypes.push_back(proto);
+    return true;
 }
 
-/// インデックスを1つ増やして次のトークンに進める
-/// @return 成功時: true, 失敗時: false
-bool TokenStream::getNextToken() {
-    int size = Tokens.size();
-    if (--size <= CurIndex) {
-        return false;
-    } else {
-        CurIndex++;
+/// FunctionAST(関数定義追加)メソッド
+/// @param  VariableDeclAST
+/// @return true
+bool TranslationUnitAST::addFunction(FunctionAST *func) {
+    Functions.push_back(func);
+    return true;
+}
+
+bool TranslationUnitAST::empty() {
+    if (Prototypes.size() == 0 && Functions.size() == 0) {
         return true;
+    } else {
+        return false;
     }
 }
 
-/// インデックスをtimes回戻す
-bool TokenStream::ungetToken(int times) {
-    for (int i = 0; i < times; i++) {
-        if (CurIndex == 0) {
-            return false;
-        } else {
-            CurIndex--;
-        }
+/// デストラクタ
+FunctionAST::~FunctionAST(){
+    SAFE_DELETE(Proto);
+    SAFE_DELETE(Body);
+}
+
+/// デストラクタ
+FunctionStmtAST::~FunctionStmtAST() {
+    // delete variable declaration
+    for (int i = 0; i < VariableDecls.size(); i++) {
+        SAFE_DELETE(VariableDecls[i]);
     }
+    VariableDecls.clear();
+
+    // delete statements
+    for (int i = 0; i < StmtLists.size(); i++) {
+        SAFE_DELETE(StmtLists[i]);
+    }
+    StmtLists.clear();
+}
+
+/// VariableDeclAST(変数宣言追加)メソッド
+/// @param VariableDeclAST
+/// @return true
+bool FunctionStmtAST::addVariableDeclaration(VariableDeclAST *vdecl) {
+    VariableDecls.push_back(vdecl);
     return true;
 }
 
-/// 格納されたトークン一覧の表示
-bool TokenStream::printTokens() {
-    std::vector<Token*>::iterator titer = Tokens.begin();
-    while (titer != Tokens.end()) {
-        fprintf(stdout, "%d: ", (*titer) -> getTokenType());
-        if ((*titer) -> getTokenType() != TOK_EOF) {
-            fprintf(stdout, "%s\n", (*titer) -> getTokensString().c_str());
-        }
-        ++titer;
+/// デストラクタ
+CallExprAST::~CallExprAST() {
+    for (int i = 0; i < Args.size(); i++) {
+        SAFE_DELETE(Args[i]);
     }
-    return true;
 }
-
-// E: TokenStreamクラスの定義 p64

@@ -155,8 +155,32 @@ FunctionAST *Parser::visitFunctionDefinition() {
 PrototypeAST *Parser::visitPrototype() {
     // bkup index
     int bkup = Tokens->getCurIndex();
+    std::string func_name;
 
-    // todo 省略 p86
+    // プロトタイプ宣言の詳細をとってくる
+    //type_specifier
+    if(Tokens->getCurType()==TOK_INT){
+        Tokens->getNextToken();
+    }else{
+        return NULL;
+    }
+
+    //IDENTIFIER
+    if(Tokens->getCurType()==TOK_IDENTIFIER){
+        func_name=Tokens->getCurString();
+        Tokens->getNextToken();
+    }else{
+        Tokens->ungetToken(1);  //unget TOK_INT
+        return NULL;
+    }
+
+    //'('
+    if(Tokens->getCurString()=="("){
+        Tokens->getNextToken();
+    }else{
+        Tokens->ungetToken(2);	//unget TOK_INT IDENTIFIER
+        return NULL;
+    }
 
     // parameter_list
     bool is_first_param = true;
@@ -188,10 +212,16 @@ PrototypeAST *Parser::visitPrototype() {
             return NULL;
         }
     }
-    // 省略 p87
-}
 
-// visitFunctionStatement p88
+    //')'
+    if(Tokens->getCurString()==")"){
+        Tokens->getNextToken();
+        return new PrototypeAST(func_name, param_list);
+    }else{
+        Tokens->applyTokenIndex(bkup);
+        return NULL;
+    }
+}
 
 /// FunctionStatement用解析メソッド
 /// @param 関数名や引数を格納したPrototypeクラスのインスタンス
@@ -502,6 +532,53 @@ BaseAST *Parser::visitAdditiveExpression(BaseAST *lhs) {
     return lhs;
 }
 
+/// MultiplicativeExpression用解析メソッド
+/// @param lhs(左辺) 初回呼び出しはNULL
+/// @return 解析成功: AST, 解析失敗: NULL
+BaseAST *Parser::visitMultiplicativeExpression(BaseAST *lhs) {
+    int bkup = Tokens->getCurIndex();
+
+    // BaseAST *lhs = visitPostfixExpression();
+    if (!lhs) {
+        lhs = visitPostfixExpression();
+    }
+    BaseAST *rhs;
+
+    if (!lhs) {
+        return NULL;
+    }
+
+    // *
+    if (Tokens->getCurType() == TOK_SYMBOL && Tokens->getCurString() == "*") {
+        Tokens->getNextToken();
+        rhs = visitPostfixExpression();
+
+        if (rhs) {
+            return visitMultiplicativeExpression(new BinaryExprAST("*", lhs, rhs));
+        } else {
+            SAFE_DELETE(lhs);
+            Tokens->applyTokenIndex(bkup);
+            return NULL;
+        }
+
+    // /
+    } else if (Tokens->getCurType() == TOK_SYMBOL && Tokens->getCurString() == "/") {
+        Tokens->getNextToken();
+        rhs = visitPostfixExpression();
+
+        if (rhs) {
+            return visitMultiplicativeExpression(new BinaryExprAST("/", lhs, rhs));
+        } else {
+            SAFE_DELETE(lhs);
+            Tokens->applyTokenIndex(bkup);
+            return NULL;
+        }
+    }
+    return lhs;
+}
+
+// なんか実装し忘れてたメソッドたちを追加していく
+
 /// ExpressionStatement(;のみの分)用構文解析メソッド
 /// @return 解析成功: AST, 解析失敗: NULL
 BaseAST *Parser::visitExpressionStatement() {
@@ -518,6 +595,73 @@ BaseAST *Parser::visitExpressionStatement() {
         }
     }
     return NULL;
+}
+
+BaseAST *Parser::visitStatement() {
+    BaseAST *stmt = NULL;
+    if (stmt = visitExpressionStatement()) {
+        return stmt;
+    } else if (stmt = visitJumpStatement()) {
+        return stmt;
+    } else {
+        return NULL;
+    }
+}
+
+/// VariableDeclaration用構文解析メソッド
+/// @return 解析成功: VariableDeclAST, 解析失敗: NULL
+VariableDeclAST *Parser::visitVariableDeclaration() {
+    std::string name;
+
+    // INT
+    if (Tokens->getCurType() == TOK_INT) {
+        Tokens->getNextToken();
+    } else {
+        return NULL;
+    }
+
+    // IDENTIFIER
+    if (Tokens->getCurType() == TOK_IDENTIFIER) {
+        name = Tokens->getCurString();
+        Tokens->getNextToken();
+    } else {
+        Tokens->ungetToken(1);
+        return NULL;
+    }
+
+    // ';'
+    if (Tokens->getCurString() == ";") {
+        Tokens->getNextToken();
+        return new VariableDeclAST(name);
+    } else {
+        Tokens->ungetToken(2);
+        return NULL;
+    }
+}
+
+/// JumpStatement用構文解析メソッド
+/// @return 解析成功: AST 解析失敗: NULL
+BaseAST *Parser::visitJumpStatement() {
+    int bkup = Tokens->getCurIndex();
+    BaseAST *expr;
+
+    if (Tokens->getCurType() == TOK_RETURN) {
+        Tokens->getNextToken();
+        if (!(expr = visitAssignmentExpression())) {
+            Tokens->applyTokenIndex(bkup);
+            return NULL;
+        }
+
+        if (Tokens->getCurString() == ";") {
+            Tokens->getNextToken();
+            return new JumpStmtAST(expr);
+        } else {
+            Tokens->applyTokenIndex(bkup);
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 #endif
