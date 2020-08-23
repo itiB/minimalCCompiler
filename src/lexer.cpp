@@ -11,14 +11,14 @@ TokenStream *LexicalAnalysis(std::string input_filename) {
     int line_num = 0;
     bool iscomment = false;
 
-    ifs.open(intput_filename.c_str(), std::ios::in);
+    ifs.open(input_filename.c_str(), std::ios::in);
     if (!ifs) {
         return NULL;
     }
 
     while (ifs && getline(ifs, cur_line)) {
         char next_char;
-        std::string::line;
+        std::string line;
         Token *next_token;
         int index = 0;
         int length = cur_line.length();
@@ -42,7 +42,7 @@ TokenStream *LexicalAnalysis(std::string input_filename) {
                 token_str = EOF;
                 next_token = new Token(token_str, TOK_EOF, line_num);
 
-            } else if (isspace(next_chat)) {
+            } else if (isspace(next_char)) {
                 // 空白
                 continue;
 
