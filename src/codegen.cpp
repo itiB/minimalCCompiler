@@ -62,7 +62,7 @@ bool CodeGen::generateTranslationUnit(TranslationUnitAST &tunit, std::string nam
         FunctionAST *func = tunit.getFunction(i);
         if (!func) {
             break;
-        } else if (!generateFunctionDefinition(func, Mod)) {
+        } else if (!(generateFunctionDefinition(func, Mod))) {
             SAFE_DELETE(Mod);
             return false;
         }
@@ -345,6 +345,10 @@ llvm::Value *CodeGen::generateCallExpression(CallExprAST *call_expr) {
 
         // isVar
         } else if (llvm::isa<VariableAST>(arg)) {
+            arg_v = generateVariable(llvm::dyn_cast<VariableAST>(arg));
+
+        // isNumber
+        } else if (llvm::isa<NumberAST>(arg)) {
             NumberAST *num = llvm::dyn_cast<NumberAST>(arg);
             arg_v = generateNumber(num->getNumberValue());
         }

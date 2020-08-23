@@ -29,9 +29,6 @@
 
 /// コード生成クラス
 class CodeGen {
-    llvm::LLVMContext context;
-    // llvm::Module *module = new llvm::Module("top", context);
-    // llvm::IRBuilder<> builder(context);
     private:
         llvm::Function    *CurFunc;   // 現在生成中のFunction
         llvm::Module      *Mod;       // 生成したModuleを格納する
@@ -42,6 +39,7 @@ class CodeGen {
         ~CodeGen();
         bool doCodeGen(TranslationUnitAST &tunit, std::string name);
         llvm::Module &getModule();
+        llvm::LLVMContext context;
 
     private:
         bool generateTranslationUnit(TranslationUnitAST &tunit, std::string name);

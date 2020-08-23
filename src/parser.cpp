@@ -43,6 +43,13 @@ TranslationUnitAST &Parser::getAST() {
 bool Parser::visitTranslationUnit() {
     TU = new TranslationUnitAST();
 
+////
+    std::vector<std::string> param_list;
+    param_list.push_back("i");
+    TU->addPrototype(new PrototypeAST("printnum", param_list));
+    PrototypeTable["printnum"] = 1;
+////
+
     // ExternalDecl
     while (true) {
         if (!visitExternalDeclaration(TU)) {
@@ -211,6 +218,7 @@ PrototypeAST *Parser::visitPrototype() {
             Tokens->applyTokenIndex(bkup);
             return NULL;
         }
+        is_first_param = false;
     }
 
     //')'
@@ -244,7 +252,7 @@ FunctionStmtAST *Parser::visitFunctionStatement(PrototypeAST *proto) {
         VariableDeclAST *vdecl = new VariableDeclAST(proto->getParamName(i));
         vdecl->setDeclType(VariableDeclAST::param);
         func_stmt->addVariableDeclaration(vdecl);
-        // VariableTable.push_back(vdecl->getName());
+        VariableTable.push_back(vdecl->getName());
     }
 
     VariableDeclAST *var_decl;
