@@ -1,6 +1,6 @@
-#include "./ast.hpp"
-#include "./app.hpp"
-#include "./lexer.hpp"
+#include "ast.hpp"
+#include "app.hpp"
+#include "lexer.hpp"
 
 #include<string>
 #include<vector>

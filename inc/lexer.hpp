@@ -7,7 +7,7 @@
 #include<list>
 #include<string>
 #include<vector>
-// #include"APP.hpp"
+#include "app.hpp"
 
 // トークンの種類
 // トークンが識別子、予約語、記号、数値のいずれかにあてはまるかという情報
@@ -25,42 +25,34 @@ enum TokenType {
 /// 個別トークン格納クラス
 class Token {
     private:
-    TokenType Type;
-    std::string TokenString;
-    int Number;
-    int Line;
+        TokenType Type;
+        std::string TokenString;
+        int Number;
+        int Line;
 
     public:
-    Token(std::string string, TokenType type, int Line) : TokenString(string), Type(type), Line(line) {
+    Token(std::string string, TokenType type, int line) : TokenString(string), Type(type), Line(line) {
         // 数字が入れられた場合
         if (type == TOK_DIGIT) {
             Number = atoi(string.c_str());
         } else {
             Number = 0x7fffffff;
         }
-        ~Token(){};
+    };
+    ~Token(){};
 
-        // トークンの種別を取得
-        TokenType getTokenType() {
-            return Type;
-        };
+    // トークンの種別を取得
+    TokenType getTokenType() { return Type; };
 
-        // トークンの文字列表現を取得
-        std::string getTokenString() {
-            return TokenString;
-        };
+    // トークンの文字列表現を取得
+    std::string getTokenString() { return TokenString; };
 
-        // トークンの数値を取得
-        int getNumberValue() {
-            return Number;
-        };
+    // トークンの数値を取得
+    int getNumberValue() { return Number; };
 
-        // トークンの出現した行数を取得
-        int getLine() {
-            return Line;
-        };
-    }
-}
+    // トークンの出現した行数を取得
+    int getLine() { return Line; };
+};
 
 /// TokenStreamクラス
 /// 切り出したすべてのTokenの格納と読み出し
@@ -75,7 +67,7 @@ class TokenStream {
 
       bool ungetToken(int Times = 1);
       bool getNextToken();
-      book pushToken(Token *token) {
+      bool pushToken(Token *token) {
           Tokens.push_back(token);
           return true;
       }
@@ -88,12 +80,12 @@ class TokenStream {
 
       // トークンの文字列表現を取得
       std::string getCurString() {
-          return Token[CurIndex] -> getTokenString();
+          return Tokens[CurIndex] -> getTokenString();
       }
 
       // トークンの数値を取得
       int getCurNumVal() {
-          return Token[CurIndex] -> getNumberVal();
+          return Tokens[CurIndex] -> getNumberValue();
       }
 
       // 現在のインデックスを取得
@@ -110,3 +102,5 @@ class TokenStream {
 };
 
 TokenStream *LexicalAnalysis(std::string input_filename);
+
+#endif

@@ -1,10 +1,31 @@
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/raw_ostream.h>
-#include "parser.hpp"
+#ifndef CODEGEN_HPP 
+#define CODEGEN_HPP
+
+#include<cstdio>
+#include<cstdlib>
+#include<map>
+#include<string>
+#include<vector>
+#include<llvm/ADT/APInt.h>
+#include<llvm/IR/Constants.h>
+#include<llvm/ExecutionEngine/ExecutionEngine.h>
+#include<llvm/ExecutionEngine/MCJIT.h>
+#include<llvm/Linker/Linker.h>
+#include<llvm/IR/LLVMContext.h>
+#include<llvm/IR/Module.h>
+#include<llvm/IR/Metadata.h>
+#include<llvm/IR/IRBuilder.h>
+#include<llvm/IR/MDBuilder.h>
+#include<llvm/IR/ValueSymbolTable.h>
+#include<llvm/Support/Casting.h>
+#include<llvm/IRReader/IRReader.h>
+
+
+#include<llvm/ADT/STLExtras.h> // Add
+#include<llvm/Support/SourceMgr.h> // Add
+
+#include "app.hpp"
+#include "ast.hpp"
 
 /// コード生成クラス
 class CodeGen {
@@ -35,3 +56,5 @@ class CodeGen {
         llvm::Value *generateVariable(VariableAST *var);
         llvm::Value *generateNumber(int value);
 };
+
+#endif

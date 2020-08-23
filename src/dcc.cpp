@@ -1,7 +1,22 @@
-#include "../inc/ast.hpp"
-#include "../inc/codegen.hpp"
-#include "../inc/lexer.hpp"
-#include "../inc/parser.hpp"
+#include "llvm/IR/IRPrintingPasses.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/LinkAllPasses.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/PrettyStackTrace.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/TargetSelect.h"
+
+// http://ktanimoto.net/public/wordpress/2019/06/kitune-sandemowakaru-llvm-5-10made-ugokasu/
+#include "llvm/Support/FileSystem.h"  //added
+#include "llvm/Support/raw_ostream.h"  //added
+
+#include "ast.hpp"
+#include "codegen.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
 
 /// 引数のオプション切り出しクラス
 class OptionParser {
@@ -17,7 +32,6 @@ class OptionParser {
             // ヘルプ表示
             fprintf(stdout, "Compiler for DummyC...\n");
         }
-        void printHelp();
         std::string getInputFileName() { return InputFilename; } // 入力ファイル名の取得
         std::string getOutputFileName() { return OutputFilename; } // 出力ファイル名の取得
         bool parseOption(); // オプション切り出しメソッド
@@ -66,7 +80,8 @@ bool OptionParser::parseOption() {
 /// 各種クラスの生成とメソッド呼び出し、コンパイルとファイル呼び出し
 int main(int argc, char **argv) {
     llvm::InitializeNativeTarget(); // ホスト環境に合わせてネイティブターゲットを初期化
-    llvm::sys::PrintStackTraceOnErrorSignal(); // スタックトレースの出力
+    // llvm::sys::PrintStackTraceOnErrorSignal(); // スタックトレースの出力
+    llvm::sys::PrintStackTraceOnErrorSignal(*argv);
     llvm::PrettyStackTraceProgram X(argc, argv); // クラッシュした際に指定された引数をストリームに出力
     llvm::EnableDebugBuffering = true;
 
@@ -116,15 +131,17 @@ int main(int argc, char **argv) {
     }
 
     // ファイル出力
-
-    std::string error;
+    llvm::legacy::PassManager pm;
+    // std::string error;
+    std::error_code ec;
 
     // raw_fd_ostream
     // raw_fd_ostream(const char *Filename, std::string &ErrorInfo, unsigned Flags=0)
     //  - filename: 出力先ファイル名
     //  - errorinfo: エラー情報を格納するstring
     //  - flags: ファイルを開くオプション
-    llvm::raw_fd_ostream raw_stream(opt.getOutputFileName().c_str(), error);
+    // llvm::raw_fd_ostream raw_stream(opt.getOutputFileName().c_str(), error);
+    llvm::raw_fd_ostream raw_stream(opt.getOutputFileName().c_str(), ec);
 
     // PrimtModulePassはPassManagerのaddメソッドで登録、runで適用
     // llvm::CreatePrintModulePass
@@ -132,7 +149,8 @@ int main(int argc, char **argv) {
     // - OS: 出力ストリームの指定
     // - DeleteStream: パスを実行後に第一引数で渡したストリームをDeleteするかしないか
     // - Banner: ストリームの先頭にBannerに指定した文字列が出力される
-    pm.add(createPrintModulePass(&rae_stream));
+    // pm.add(llvm::createPrintModulePass(&raw_stream));
+    pm.add(llvm::createPrintModulePass(raw_stream));
     pm.run(mod);
     raw_stream.close();
 

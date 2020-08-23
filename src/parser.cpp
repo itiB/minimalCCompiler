@@ -1,4 +1,7 @@
-#include "../inc/parser.hpp"
+#ifndef PARSER_HPP
+#define PARSER_HPP
+
+#include "parser.hpp"
 
 // S: 構文解析メソッドの実装 p.81
 
@@ -261,7 +264,7 @@ FunctionStmtAST *Parser::visitFunctionStatement(PrototypeAST *proto) {
 
     // 戻り値の確認
     // 最後のstatementがjumpstatementであるかを確認
-    if (!last_stmt || !isa<JumpStmtAST>(last_stmt)) {
+    if (!last_stmt || !llvm::isa<JumpStmtAST>(last_stmt)) {
         SAFE_DELETE(func_stmt);
         Tokens->applyTokenIndex(bkup);
         return NULL;
@@ -516,3 +519,5 @@ BaseAST *Parser::visitExpressionStatement() {
     }
     return NULL;
 }
+
+#endif

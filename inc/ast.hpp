@@ -1,6 +1,10 @@
+#ifndef AST_HPP 
+#define AST_HPP
+
 #include<string>
-#include "../inc/app.hpp"
+#include "app.hpp"
 #include<vector>
+#include<llvm/Support/Casting.h>
 
 /// ｸﾗｽ宣言
 class BaseAST;
@@ -225,7 +229,10 @@ class FunctionStmtAST {
         bool addVariableDeclaration(VariableDeclAST *vdecl);
 
         // 関数にステートメントを追加する
-        bool addStatement(BaseAST *stmt) { StmtLists.push_back(stmt); }
+        bool addStatement(BaseAST *stmt) { 
+            StmtLists.push_back(stmt);
+            return true;
+        }
 
         // i番目変数を取得する
         VariableDeclAST *getVariableDecl(int i) {
@@ -339,3 +346,5 @@ class TranslationUnitAST {
 };
 
 // E: 関数とモジュール p76
+
+#endif

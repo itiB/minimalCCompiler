@@ -1,6 +1,6 @@
 // CodeGenクラスのメソッドを実装していく
 
-#include "../inc/codegen.hpp"
+#include "codegen.hpp"
 
 /// コンストラクタ
 /// IRBuilderを生成 各コード生成メソッドで使用する
@@ -218,8 +218,8 @@ llvm::Value *CodeGen::generateVariableDeclaration(VariableDeclAST *vdecl) {
     //   - 引数を表すValueを取得する: FunctionのgetValueSymbolTable, ValueSymbolTableのloopupを利用
     if (vdecl->getType() == VariableDeclAST::param) {
         // Store Args p.119
-        llvm::ValueSymbolTable &vs_table = CurFunc->getValueSymbolTable();
-        Builder->CreateStore(vs_table.lookup(vdecl->getName().append("_arg")), alloca);
+        llvm::ValueSymbolTable* vs_table = CurFunc->getValueSymbolTable();
+        Builder->CreateStore(vs_table->lookup(vdecl->getName().append("_arg")), alloca);
     }
     return alloca;
 }
@@ -255,8 +255,8 @@ llvm::Value *CodeGen::generateBinaryExpression(BinaryExprAST *bin_expr) {
     if (bin_expr->getOp() == "=") {
         // lhs is variable
         VariableAST *lhs_var = llvm::dyn_cast<VariableAST>(lhs);
-        llvm::ValueSymbolTable &vs_table = CurFunc->getValueSymbolTable();
-        lhs_v = vs_table.lookup(lhs_var->getName());
+        llvm::ValueSymbolTable* vs_table = CurFunc->getValueSymbolTable();
+        lhs_v = vs_table->lookup(lhs_var->getName());
 
     // other operand
     } else {
@@ -317,7 +317,7 @@ llvm::Value *CodeGen::generateCallExpression(CallExprAST *call_expr) {
     std::vector<llvm::Value*> arg_vec;
     BaseAST *arg;
     llvm::Value *arg_v;
-    llvm::ValueSymbolTable &vs_table = CurFunc->getValueSymbolTable();
+    llvm::ValueSymbolTable* vs_table = CurFunc->getValueSymbolTable();
     for (int i = 0; ; i++) {
         if (!(arg = call_expr->getArgs(i)))
             break;
@@ -332,7 +332,7 @@ llvm::Value *CodeGen::generateCallExpression(CallExprAST *call_expr) {
             arg_v = generateBinaryExpression(llvm::dyn_cast<BinaryExprAST>(arg));
             if (bin_expr->getOp() == "=") {
                 VariableAST *var = llvm::dyn_cast<VariableAST>(bin_expr->getLHS());
-                arg_v = Builder->CreateLoad(vs_table.lookup(var->getName()), "arg_val");
+                arg_v = Builder->CreateLoad(vs_table->lookup(var->getName()), "arg_val");
             }
 
         // isVar
@@ -371,18 +371,20 @@ llvm::Value *CodeGen::generateJumpStatement(JumpStmtAST *jump_stmt) {
     // IRBuilder::CreateRef
     // ReturnInst * CreateRet(Value *V)
     Builder->CreateRet(ret_v);
+
+    return ret_v; // add
 }
 
 /// 変数参照(load命令)生成メソッド p.124
 /// @param VariableAST
 /// @return 生成したValueのポインタ
 llvm::Value *CodeGen::generateVariable(VariableAST *var) {
-    llvm::ValueSymbolTable &vs_table = CurFunc->getValueSymbolTable();
+    llvm::ValueSymbolTable* vs_table = CurFunc->getValueSymbolTable();
     // llvm::IRBuilder::CreateLoad
     // LoadInst * CreateLoad(Value *Ptr, const Twine &Name="")
     // - Ptr: Load対象のValue
     //   - ValueSymbolTableからAllocaInstを取得して指定
-    return Builder->CreateLoad(vs_table.lookup(var->getName()), "var_tmp");
+    return Builder->CreateLoad(vs_table->lookup(var->getName()), "var_tmp");
 }
 
 /// 定数生成メソッド
@@ -397,4 +399,22 @@ llvm::Value *CodeGen::generateNumber(int value) {
         llvm::Type::getInt32Ty(context),
         value
     );
+}
+
+
+bool CodeGen::linkModule(llvm::Module *dest, std::string file_name){
+    llvm::SMDiagnostic err;
+    llvm::Module *link_mod = llvm::parseIRFile(file_name, err, context);
+    if(!link_mod)
+        return false;
+
+    std::string err_msg;
+    // if(llvm::Linker::LinkModules(dest, link_mod, llvm::None, &err_msg))
+    if(llvm::Linker::linkModules(dest, link_mod, llvm::None))
+        return false;
+
+    // SAFE_DELETE(link_mod);
+    SAFE_DELETEU(link_mod);
+
+    return true;
 }

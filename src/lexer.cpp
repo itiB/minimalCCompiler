@@ -1,4 +1,4 @@
-#include "../inc/lexer.hpp"
+#include "lexer.hpp"
 
 /// トークン切り出し関数
 /// @param 字句解析対象ファイル名

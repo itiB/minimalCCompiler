@@ -1,4 +1,4 @@
-// S: TokenStreamクラスの定義 p64
+#include "ast.hpp"
 
 /// デストラクタ
 TokenStream::~TokenStream() {
