@@ -43,12 +43,12 @@ TranslationUnitAST &Parser::getAST() {
 bool Parser::visitTranslationUnit() {
     TU = new TranslationUnitAST();
 
-////
     std::vector<std::string> param_list;
     param_list.push_back("i");
+
+    // printnum 宣言の追加をあらかじめする
     TU->addPrototype(new PrototypeAST("printnum", param_list));
     PrototypeTable["printnum"] = 1;
-////
 
     // ExternalDecl
     while (true) {
