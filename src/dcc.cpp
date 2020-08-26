@@ -135,6 +135,9 @@ int main(int argc, char **argv) {
     // std::string error;
     std::error_code ec;
 
+    // mem2regをPassMangerに登録
+    pm.add(llvm::createPromoteMemoryToRegisterPass());
+
     // raw_fd_ostream
     // raw_fd_ostream(const char *Filename, std::string &ErrorInfo, unsigned Flags=0)
     //  - filename: 出力先ファイル名
